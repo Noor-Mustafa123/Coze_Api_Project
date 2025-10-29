@@ -4,13 +4,19 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.coze.openapi.client.chat.CreateChatReq;
+import com.coze.openapi.client.chat.CreateChatResp;
+import com.coze.openapi.client.chat.model.Chat;
+import com.coze.openapi.client.chat.model.ChatPoll;
+import com.coze.openapi.client.connversations.message.model.Message;
+import com.coze.openapi.client.connversations.message.model.MessageContentType;
+import com.coze.openapi.service.service.chat.ChatMessageService;
+import com.example.api.models.UserQueryDTO;
+import jakarta.websocket.server.PathParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.coze.openapi.client.bots.CreateBotReq;
 import com.coze.openapi.client.bots.CreateBotResp;
@@ -96,6 +102,32 @@ public class APIController {
         return new ResponseEntity<>( publishBotResp, HttpStatusCode.valueOf( 200 ) );
 
     }
+
+    @GetMapping("/create/chat")
+    public ResponseEntity createNewChat(@RequestParam("botId") String botId, @RequestParam("userId") String userId ){
+        CreateChatReq createChatReq =  CreateChatReq.builder().botID(botId).userID(userId).build();
+        CreateChatResp createChatResp = cozeAPI.chat().create(createChatReq);
+        // ! feature:: create a entity for chat and save it to db for now im just reutnring the chatid
+        Chat chatModel = createChatResp.getChat();
+        return ResponseEntity.ok(createChatResp);
+    }
+
+    @PostMapping("/{chatId}/input")
+    public ResponseEntity chatUserInput(@PathVariable("chatId") String chatId, @RequestBody UserQueryDTO userQueryDTO){
+        Message message = Message.builder().chatId(userQueryDTO.chatId).botId(userQueryDTO.botId).content(userQueryDTO.getMessage()).contentType(MessageContentType.TEXT).build();
+        CreateChatReq createChatReq =  CreateChatReq.builder().botID(userQueryDTO.getBotId()).userID(userQueryDTO.userId).messages(List.of(message)).build();
+        ChatPoll createChatResponse;
+        try {
+            createChatResponse = cozeAPI.chat().createAndPoll(createChatReq);
+        }catch (Exception e){
+            throw new RuntimeException(e);
+        }
+        // temporary for testing
+        System.out.println(createChatResponse.getMessages().get(0));
+        return ResponseEntity.ok(createChatResponse);
+    }
+
+
 
     public Response getOkHttpResponseObject( Object body ) {
         String responseJson;
