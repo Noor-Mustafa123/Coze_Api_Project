@@ -49,7 +49,7 @@ public class APIService {
             dataBuffer.add( paginatedResponse.getIterator().next() );
         }
         WorkspaceListResponseDTO response = new WorkspaceListResponseDTO();
-        response.setPaginWorkspaceResponseObj( paginatedResponse );
+        return response;
     }
 
     public PublishBotResp createBot(String workspaceId) {
@@ -94,7 +94,11 @@ public class APIService {
     public ChatPoll chatUserInput( UserQueryDTO userQueryDTO){
         Message message = Message.builder().chatId(userQueryDTO.chatId).botId(userQueryDTO.botId).content(userQueryDTO.getMessage()).contentType(
                 MessageContentType.TEXT).build();
-        CreateChatReq createChatReq =  CreateChatReq.builder().botID(userQueryDTO.getBotId()).userID(userQueryDTO.userId).messages(List.of(message)).build();
+        CreateChatReq createChatReq =  CreateChatReq.builder()
+                .botID(userQueryDTO.getBotId())
+                .userID(userQueryDTO.getUserId())
+                .messages(List.of(message))
+                .build();
         ChatPoll queryResponse;
         try {
             queryResponse = cozeAPI.chat().createAndPoll(createChatReq);
