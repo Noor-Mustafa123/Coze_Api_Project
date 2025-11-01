@@ -80,7 +80,7 @@ public class APIController {
 
     @PostMapping("/{chatId}/input")
     public ResponseEntity chatUserInput(@PathVariable("chatId") String chatId, @RequestBody UserQueryDTO userQueryDTO){
-        ChatPoll queryResponse = apiService.chatUserInput(chatId, userQueryDTO );
+        ChatPoll queryResponse = apiService.chatUserInput( userQueryDTO );
         // temporary for testing
         System.out.println(queryResponse.getMessages().get(0));
         return ResponseEntity.ok(queryResponse);
