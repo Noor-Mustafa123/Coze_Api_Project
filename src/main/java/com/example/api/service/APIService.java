@@ -44,17 +44,13 @@ public class APIService {
     public WorkspaceListResponseDTO createRequest() {
         ListWorkspaceReq listWorkspaceReq = ListWorkspaceReq.builder().build();
         PageResp< Workspace > paginatedResponse = cozeAPI.workspaces().list( listWorkspaceReq );
-        List< Workspace > dataBuffer = new ArrayList<>();
-        while ( paginatedResponse.getIterator().hasNext() ) {
-            dataBuffer.add( paginatedResponse.getIterator().next() );
-        }
-        WorkspaceListResponseDTO response = new WorkspaceListResponseDTO();
+        WorkspaceListResponseDTO response = new WorkspaceListResponseDTO(paginatedResponse);
         return response;
     }
 
     public PublishBotResp createBot(String workspaceId) {
         // bot avatar upload
-        UploadFileResp uploadFileResp = cozeAPI.files().upload( UploadFileReq.of( "/home/sces82/Downloads/51ICajOAAXL.jpg" ) );
+        UploadFileResp uploadFileResp = cozeAPI.files().upload( UploadFileReq.of( "/home/noor/Downloads/kali-cubism.jpg" ) );
         String fileID = uploadFileResp.getFileInfo().getID();
 
         // set the onboarding info of your bot

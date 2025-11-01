@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
 
 import com.coze.openapi.client.bots.CreateBotReq;
 import com.coze.openapi.client.bots.CreateBotResp;
@@ -41,6 +42,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 
+@CrossOrigin(origins = "http://localhost:63342")
 @RequestMapping( "/v1" )
 @RestController
 public class APIController {
@@ -78,7 +80,7 @@ public class APIController {
 
     @PostMapping("/{chatId}/input")
     public ResponseEntity chatUserInput(@PathVariable("chatId") String chatId, @RequestBody UserQueryDTO userQueryDTO){
-        ChatPoll queryResponse = apiService.chatUserInput( userQueryDTO );
+        ChatPoll queryResponse = apiService.chatUserInput(chatId, userQueryDTO );
         // temporary for testing
         System.out.println(queryResponse.getMessages().get(0));
         return ResponseEntity.ok(queryResponse);
