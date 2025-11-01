@@ -4,8 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class UserQueryDTO {
 
-    @JsonProperty("chat_id")
-    public String chatId;
 
     @JsonProperty("user_id")
     public String userId;
@@ -16,14 +14,6 @@ public class UserQueryDTO {
     @JsonProperty("message")
     public String message;
 
-
-    public String getChatId() {
-        return chatId;
-    }
-
-    public void setChatId(String chatId) {
-        this.chatId = chatId;
-    }
 
     public String getMessage() {
         return message;

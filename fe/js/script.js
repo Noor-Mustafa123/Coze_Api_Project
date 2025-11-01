@@ -71,13 +71,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 messageInput.value = '';
 
                 // Send message to the backend
-                fetch(`http://localhost:8080/v1/${activeChatId}/input`, {
+                fetch(`http://localhost:8080/v1/input`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        chat_id: activeChatId,
                         user_id: activeUserId,
                         bot_id: activeBotId,
                         message: message

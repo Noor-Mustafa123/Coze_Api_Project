@@ -87,9 +87,8 @@ public class APIService {
         return chatModel;
     }
 
-    public ChatPoll chatUserInput( UserQueryDTO userQueryDTO){
-        Message message = Message.builder().chatId(userQueryDTO.chatId).botId(userQueryDTO.botId).content(userQueryDTO.getMessage()).contentType(
-                MessageContentType.TEXT).build();
+    public ChatPoll chatUserInput(UserQueryDTO userQueryDTO){
+        Message message = Message.buildUserQuestionText(userQueryDTO.getMessage());
         CreateChatReq createChatReq =  CreateChatReq.builder()
                 .botID(userQueryDTO.getBotId())
                 .userID(userQueryDTO.getUserId())
