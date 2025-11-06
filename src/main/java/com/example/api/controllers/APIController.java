@@ -63,7 +63,7 @@ public class APIController {
         return ResponseEntity.ok( apiService.createRequest() );
     }
 
-    /* ************************CHAT************************ */
+    /* ************************BOT************************ */
 
     @GetMapping( "/create/bot" )
     public ResponseEntity createBotInWorkspace( @RequestParam( "id" ) String workspaceId ) {
@@ -72,6 +72,15 @@ public class APIController {
 
     }
 
+    @GetMapping( "/list/bot" )
+    public ResponseEntity listBotsInWorkspace( @RequestParam( "id" ) String workspaceId ) {
+        String listOfBots = apiService.listBots( workspaceId );
+        return new ResponseEntity<>( listOfBots, HttpStatusCode.valueOf( 200 ) );
+    }
+
+
+
+    /* ************************CHAT************************ */
     @GetMapping("/create/chat")
     public ResponseEntity createNewChat(@RequestParam("botId") String botId, @RequestParam("userId") String userId ){
         CreateChatReq createChatReq =  CreateChatReq.builder().botID(botId).userID(userId).build();

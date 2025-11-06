@@ -1,28 +1,27 @@
 package com.example.api.service;
 
-import java.util.ArrayList;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import com.coze.openapi.client.bots.CreateBotReq;
 import com.coze.openapi.client.bots.CreateBotResp;
+import com.coze.openapi.client.bots.ListBotReq;
 import com.coze.openapi.client.bots.PublishBotReq;
 import com.coze.openapi.client.bots.PublishBotResp;
 import com.coze.openapi.client.bots.model.BotOnboardingInfo;
 import com.coze.openapi.client.bots.model.BotPromptInfo;
+import com.coze.openapi.client.bots.model.SimpleBot;
 import com.coze.openapi.client.chat.CreateChatReq;
 import com.coze.openapi.client.chat.CreateChatResp;
 import com.coze.openapi.client.chat.model.Chat;
 import com.coze.openapi.client.chat.model.ChatPoll;
 import com.coze.openapi.client.common.pagination.PageResp;
 import com.coze.openapi.client.connversations.message.model.Message;
-import com.coze.openapi.client.connversations.message.model.MessageContentType;
 import com.coze.openapi.client.files.UploadFileReq;
 import com.coze.openapi.client.files.UploadFileResp;
 import com.coze.openapi.client.workspace.ListWorkspaceReq;
@@ -44,13 +43,13 @@ public class APIService {
     public WorkspaceListResponseDTO createRequest() {
         ListWorkspaceReq listWorkspaceReq = ListWorkspaceReq.builder().build();
         PageResp< Workspace > paginatedResponse = cozeAPI.workspaces().list( listWorkspaceReq );
-        WorkspaceListResponseDTO response = new WorkspaceListResponseDTO(paginatedResponse);
+        WorkspaceListResponseDTO response = new WorkspaceListResponseDTO( paginatedResponse );
         return response;
     }
 
-    public PublishBotResp createBot(String workspaceId) {
+    public PublishBotResp createBot( String workspaceId ) {
         // bot avatar upload
-        UploadFileResp uploadFileResp = cozeAPI.files().upload( UploadFileReq.of( "/home/noor/Downloads/kali-cubism.jpg" ) );
+        UploadFileResp uploadFileResp = cozeAPI.files().upload( UploadFileReq.of( "/home/sces82/Downloads/51ICajOAAXL.jpg" ) );
         String fileID = uploadFileResp.getFileInfo().getID();
 
         // set the onboarding info of your bot
@@ -73,36 +72,53 @@ public class APIService {
         String botID = createBotResp.getBotID();
 
         // Publish bot request
-        PublishBotReq publishBotReq = PublishBotReq.builder().botID( botID ).connectorIDs( Arrays.asList("1024")).build();
+        PublishBotReq publishBotReq = PublishBotReq.builder().botID( botID ).connectorIDs( Arrays.asList( "1024" ) ).build();
 
         PublishBotResp publishBotResp = cozeAPI.bots().publish( publishBotReq );
 
         return publishBotResp;
     }
 
-    public Chat createChat( CreateChatReq createChatReq){
-        CreateChatResp createChatResp = cozeAPI.chat().create(createChatReq);
+    public Chat createChat( CreateChatReq createChatReq ) {
+        CreateChatResp createChatResp = cozeAPI.chat().create( createChatReq );
         // ! feature:: create a entity for chat and save it to db for now im just reutnring the chatid
         Chat chatModel = createChatResp.getChat();
         return chatModel;
     }
 
-    public ChatPoll chatUserInput(UserQueryDTO userQueryDTO){
-        Message message = Message.buildUserQuestionText(userQueryDTO.getMessage());
-        CreateChatReq createChatReq =  CreateChatReq.builder()
-                .botID(userQueryDTO.getBotId())
-                .userID(userQueryDTO.getUserId())
-                .messages(List.of(message))
-                .build();
+    public ChatPoll chatUserInput( UserQueryDTO userQueryDTO ) {
+        Message message = Message.buildUserQuestionText( userQueryDTO.getMessage() );
+        CreateChatReq createChatReq = CreateChatReq.builder().botID( userQueryDTO.getBotId() ).userID( userQueryDTO.getUserId() )
+                .messages( List.of( message ) ).build();
         ChatPoll queryResponse;
         try {
-            queryResponse = cozeAPI.chat().createAndPoll(createChatReq);
-        }catch (Exception e){
-            throw new RuntimeException(e);
+            queryResponse = cozeAPI.chat().createAndPoll( createChatReq );
+        } catch ( Exception e ) {
+            throw new RuntimeException( e );
         }
         return queryResponse;
     }
 
+    public String listBots( String workspaceId ) {
 
+        try {
+            ListBotReq listBotReq = ListBotReq.builder().spaceID( workspaceId ).build();
+            PageResp< SimpleBot > listOfBots = cozeAPI.bots().list( listBotReq );
+            try ( FileWriter fileWriter = new FileWriter( "list_of_bots.txt" ) ) {
+                listOfBots.getItems().stream().forEach( ( bot ) -> {
+                    try {
+                        String botId = String.format( "%n" + "botId: %s, botName: %s", bot.getBotID(), bot.getBotName() );
+                        fileWriter.write( botId );
+                    } catch ( IOException e ) {
+                        throw new RuntimeException( e );
+                    }
+                } );
+            }
+            return objectMapper.writeValueAsString( listOfBots.getItems() );
+
+        } catch ( Exception e ) {
+            throw new RuntimeException( e );
+        }
+    }
 
 }

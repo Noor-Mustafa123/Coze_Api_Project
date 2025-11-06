@@ -1,4 +1,3 @@
-
 document.addEventListener('DOMContentLoaded', () => {
     const contactsList = document.querySelector('.contacts ul');
     const chatContent = document.querySelector('.message-content');
@@ -7,47 +6,66 @@ document.addEventListener('DOMContentLoaded', () => {
     let activeBotId = null;
     let activeUserId = null;
 
-    // Fetch workspaces and populate the contact list
+    // Fetch workspaces, get the first one, then fetch its bots
     fetch("http://localhost:8080/v1/workspaces/list")
         .then(response => response.json())
         .then(data => {
-            contactsList.innerHTML = ''; // Clear existing contacts
-            data.paginWorkspaceResponseObj.items.forEach(workspace => {
-                const contactItem = `
-                    <li>
-                        <a href="#" data-workspace-id="${workspace.id}">
-                            <img src="img/avatar.png" alt="Avatar">
-                            <div class="contact">
-                                <div class="name">${workspace.name}</div>
-                            </div>
-                        </a>
-                    </li>
-                `;
-                contactsList.innerHTML += contactItem;
-            });
+            // Get the first workspace
+            if (data.paginWorkspaceResponseObj.items.length > 0) {
+                const firstWorkspace = data.paginWorkspaceResponseObj.items[0];
+                // Fetch bots for the first workspace
+                return fetch(`http://localhost:8080/v1/list/bot?id=${firstWorkspace.id}`)
+                    .then(response => response.json())
+                    .then(botsData => {
+                        // Populate contacts list with bots
+                        contactsList.innerHTML = '';
+                        if (botsData.length > 0) {
+                            botsData.forEach(bot => {
+                                const contactItem = `
+                                    <li>
+                                        <a href="#" data-bot-id="${bot.bot_id}">
+                                            <img src="${bot.icon_url || 'img/avatar.png'}" alt="Bot Avatar">
+                                            <div class="contact">
+                                                <div class="name">${bot.bot_name}</div>
+                                                <div class="message">${bot.description || 'No description'}</div>
+                                            </div>
+                                        </a>
+                                    </li>
+                                `;
+                                contactsList.innerHTML += contactItem;
+                            });
+                        } else {
+                            contactsList.innerHTML = '<li><div class="no-bots">No bots available</div></li>';
+                        }
+                    });
+            } else {
+                contactsList.innerHTML = '<li><div class="no-workspaces">No workspaces available</div></li>';
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching workspaces or bots:', error);
+            contactsList.innerHTML = '<li><div class="error">Error loading bots</div></li>';
         });
 
-    // Handle contact click to start a chat
+    // Handle bot click to start a chat
     contactsList.addEventListener('click', (event) => {
-    console.log("contact even listener triggered")
+        console.log("bot click listener triggered");
         event.preventDefault();
         const target = event.target.closest('a');
-        if (target) {
-            const workspaceId = target.dataset.workspaceId;
-            // Create a bot and then a chat
-            fetch(`http://localhost:8080/v1/create/bot?id=${workspaceId}`)
+        if (target && target.dataset.botId) {
+            const botId = target.dataset.botId;
+            // Create a chat with the selected bot
+            fetch(`http://localhost:8080/v1/create/chat?botId=${botId}&userId=123`)
                 .then(response => response.json())
-                .then(botData => {
-                    const botId = botData.bot_id;
-                    fetch(`http://localhost:8080/v1/create/chat?botId=${botId}&userId=123`) // Using a static user ID for now
-                        .then(response => response.json())
-                        .then(chatData => {
-                            activeChatId = chatData.id;
-                            activeBotId = botId;
-                            activeUserId = '123';
-                            console.log('activeChatId set to:', activeChatId);
-                            chatContent.innerHTML = ''; // Clear previous messages
-                        });
+                .then(chatData => {
+                    activeChatId = chatData.id;
+                    activeBotId = botId;
+                    activeUserId = '123';
+                    console.log('activeChatId set to:', activeChatId);
+                    chatContent.innerHTML = ''; // Clear previous messages
+                })
+                .catch(error => {
+                    console.error('Error creating chat:', error);
                 });
         }
     });
