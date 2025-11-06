@@ -42,7 +42,8 @@ import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 
-@CrossOrigin(origins = "http://localhost:63342")
+@CrossOrigin(origins = {"http://localhost:63342", "http://localhost:8080"},
+        allowCredentials = "true")
 @RequestMapping( "/v1" )
 @RestController
 public class APIController {

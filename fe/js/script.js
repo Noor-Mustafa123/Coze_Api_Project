@@ -6,18 +6,29 @@ document.addEventListener('DOMContentLoaded', () => {
     let activeBotId = null;
     let activeUserId = null;
 
-    // Fetch workspaces, get the first one, then fetch its bots
+    // Fetch workspaces - this will now require authentication
     fetch("http://localhost:8080/v1/workspaces/list")
-        .then(response => response.json())
+        .then(response => {
+            if (response.status === 401) {
+                // If unauthorized, browser should redirect to login
+                window.location.href = '/login';
+                return;
+            }
+            return response.json();
+        })
         .then(data => {
-            // Get the first workspace
+            // Process workspaces and bots as before
             if (data.paginWorkspaceResponseObj.items.length > 0) {
                 const firstWorkspace = data.paginWorkspaceResponseObj.items[0];
-                // Fetch bots for the first workspace
                 return fetch(`http://localhost:8080/v1/list/bot?id=${firstWorkspace.id}`)
-                    .then(response => response.json())
+                    .then(response => {
+                        if (response.status === 401) {
+                            window.location.href = '/login';
+                            return;
+                        }
+                        return response.json();
+                    })
                     .then(botsData => {
-                        // Populate contacts list with bots
                         contactsList.innerHTML = '';
                         if (botsData.length > 0) {
                             botsData.forEach(bot => {
@@ -47,6 +58,8 @@ document.addEventListener('DOMContentLoaded', () => {
             contactsList.innerHTML = '<li><div class="error">Error loading bots</div></li>';
         });
 
+    // Rest of your existing code remains the same...
+
     // Handle bot click to start a chat
     contactsList.addEventListener('click', (event) => {
         console.log("bot click listener triggered");
@@ -56,7 +69,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const botId = target.dataset.botId;
             // Create a chat with the selected bot
             fetch(`http://localhost:8080/v1/create/chat?botId=${botId}&userId=123`)
-                .then(response => response.json())
+                .then(response => {
+                    if (response.status === 401) {
+                        window.location.href = '/login';
+                        return;
+                    }
+                    return response.json();
+                })
                 .then(chatData => {
                     activeChatId = chatData.id;
                     activeBotId = botId;
@@ -93,6 +112,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
+                        // Add credentials if needed
+                        // 'Authorization': 'Bearer ' + token
                     },
                     body: JSON.stringify({
                         user_id: activeUserId,
@@ -100,7 +121,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         message: message
                     })
                 })
-                .then(response => response.json())
+                .then(response => {
+                    if (response.status === 401) {
+                        window.location.href = '/login';
+                        return;
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     // Display bot's response
                     const botMessageElement = `
