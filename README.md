@@ -1,5 +1,8 @@
 This is a Spring Boot-based web application that serves as an integration layer with the Coze AI API platform. The project provides a complete solution for managing AI bots and conducting chat conversations through both backend APIs and a frontend user interface.
 
+<img width="1910" height="1118" alt="image" src="https://github.com/user-attachments/assets/486ee74a-3198-478c-a056-e45033f160e9" />
+
+
 Key Components:
 
 Backend (Java/Spring Boot)
